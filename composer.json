@@ -1,0 +1,32 @@
+{
+  "name": "drozzi-pro/wp-vite-theme",
+  "description": "Theme Wordpress for development. Includes: Vite js",
+  "type": "project",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Alexandr Bardin",
+      "email": "sergalexbard@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": { "": ["lib/"] },
+    "files": [
+      "config/theme/variables.php",
+      "config/theme/assets.php",
+      "config/theme/supports.php"
+    ]
+  },
+  "require": {
+    "symfony/asset": "5.3",
+    "kviron/wp-component-engine": "^0.1.0",
+    "stoutlogic/acf-builder": "^1.12",
+    "vlucas/phpdotenv": "^5.5"
+  },
+  "scripts": {
+    "post-create-project-cmd": [
+      "php -r \"copy('.env.example', '.env');\""
+    ]
+  }
+}
