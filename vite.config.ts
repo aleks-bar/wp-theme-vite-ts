@@ -14,7 +14,8 @@ export default defineConfig( ( configEnv ) => {
         isDev: mode === 'development',
         port: +env.DEV_PORT || 3000,
         host: env.DEV_HOST || 'localhost',
-        domain: env.DOMAIN || 'skmebel.loc',
+        domain: 'example.loc',
+        jsFile: env.MAIN_JS_FILE,
         paths: {
             root: resolve( __dirname ),
             build: resolve( __dirname, env.BUILD_DIR || 'dist' ),
@@ -22,9 +23,7 @@ export default defineConfig( ( configEnv ) => {
         },
         define: {
             __IS_DEV__: mode === 'development',
-            __API__: JSON.stringify( env.API ),
-            __USER_LOGIN__: JSON.stringify( env.USER_LOGIN ),
-            __USER_PASS__: JSON.stringify( env.USER_PASS ),
+            __API__: '/wp-json/',
         },
     };
 

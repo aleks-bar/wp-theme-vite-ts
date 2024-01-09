@@ -30,4 +30,4 @@ define('THEME_MANIFEST', env('MANIFEST') ?? 'assets.json');
 define('THEME_URL', get_template_directory_uri());
 define('THEME_PATH', get_theme_file_path());
 define('IS_DEV', THEME_MOD === 'development');
-define('THEME_JS_DATA_SCRIPT_NAME', IS_DEV ? 'main' : 'src/main.ts');
+define('THEME_JS_DATA_SCRIPT_NAME', IS_DEV ? 'main' : 'src/'. env('MAIN_JS_FILE'));

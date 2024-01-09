@@ -51,7 +51,7 @@ export function viteConfig( options: ViteOptions ): UserConfig {
             sourcemap: options.mode === 'development',
             rollupOptions: {
                 input: {
-                    main: resolve( options.paths.src, 'main.tsx' ),
+                    main: resolve( options.paths.src, options.jsFile ),
                 },
                 output: {
                     // manualChunks: {
