@@ -9,7 +9,7 @@ class Api
 {
     public string $namespace;
     public string $version;
-    public static array $endPoints;
+    public static array $endPoints = [];
 
     // Инициализируем новое апи
     public function __construct($params) {
