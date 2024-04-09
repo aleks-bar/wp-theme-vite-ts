@@ -1,4 +1,4 @@
 <footer>
     <p>Footer</p>
 </footer>
-<?php require_once 'components/scripts.php' ?>
+<?php require_once 'scripts/template.php' ?>

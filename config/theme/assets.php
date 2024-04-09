@@ -24,5 +24,12 @@ function theme_init_assets()
     }
 }
 
+//add_action('admin_enqueue_scripts', 'theme_init_admin_assets');
+//function theme_init_admin_assets()
+//{
+//  $theme = Theme::getInstance();
+//  $theme->injectViteAssets(['admin' => true]);
+//}
+
 //wp_add_inline_script( 'wp-api-request', "try { sessionStorage.removeItem( 'wp-api-schema-model' + wpApiSettings.root + wpApiSettings.versionString ); } catch ( err ) {}" );
 
