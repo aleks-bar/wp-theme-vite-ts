@@ -25,7 +25,7 @@ class Theme
 
     private static array $enqueued_assets_data = [];
     private static string $default_chunk_name_for_another_pages = 'index';
-    private static array $necessary_chunks_name = ['layout'];
+    private static array $necessary_chunks_names = ['layout'];
 
     public static function getInstance(): Theme
     {
@@ -288,13 +288,23 @@ class Theme
         return $tag;
     }
 
+    public static function setDefaultChunkNameForAnotherPages(string $new_chunk_name): void
+    {
+        self::$default_chunk_name_for_another_pages = $new_chunk_name;
+    }
+
+    public static function addNecessaryChunks(array $new_necessary_chunks): void
+    {
+        self::$necessary_chunks_names = array_merge(self::$necessary_chunks_names, $new_necessary_chunks);
+    }
+
     private static function isUseChunk($chunk_name): bool
     {
         $is_chunk_for_this_page = (is_front_page() && $chunk_name === 'front-page') || is_page($chunk_name);
-        $is_necessary_chunk_name = in_array($chunk_name, self::$necessary_chunks_name, true);
+        $is_necessary_chunk_name = in_array($chunk_name, self::$necessary_chunks_names, true);
         $is_default_chunk_for_another_pages = $chunk_name === self::$default_chunk_name_for_another_pages;
 
-        return ($is_chunk_for_this_page || $is_necessary_chunk_name) || $is_default_chunk_for_another_pages;
+        return $is_chunk_for_this_page || $is_necessary_chunk_name || $is_default_chunk_for_another_pages;
     }
 
     private static function enqueueChunkData($slug, $chunk_data): void
