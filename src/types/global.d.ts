@@ -16,7 +16,6 @@ declare module '*.scss' {
 //     export default SVG;
 // }
 
-declare module 'react-dom/client';
 declare const __IS_DEV__: boolean;
 declare const __API__: string;
 declare const __USER_LOGIN__: string;

@@ -16,6 +16,17 @@ class Theme
 
     public static array $assets;
 
+    private static array $js_deps = [
+        'production' => [ 'jquery', 'wp-api' ],
+        'development' => [ 'jquery', 'wp-api', 'vite-client' ]
+    ];
+
+    private static bool $is_dev;
+
+    private static array $enqueued_assets_data = [];
+    private static string $default_chunk_name_for_another_pages = 'index';
+    private static array $necessary_chunks_name = ['layout'];
+
     public static function getInstance(): Theme
     {
         if (self::$instance === null) {
@@ -30,6 +41,7 @@ class Theme
         // Получаем данные из файла assets.json
         if (file_exists(get_theme_file_path('/dist/manifest.json'))) {
             self::$assets = (array) json_decode(file_get_contents(get_theme_file_path('/dist/manifest.json')));
+            self::$is_dev = IS_DEV ?? false;
         }
     }
 
@@ -263,16 +275,12 @@ class Theme
                 $this->webpackAssets = (array)json_decode(file_get_contents($file));
             }
         }
-
-
     }
 
     public function add_attributes_vite_assets($tag, $handle, $src)
     {
-        $isDev = THEME_MOD === 'development';
-
-        if ($isDev) {
-            if ((array_key_exists($handle, (array)self::$assets['inputs'] )) || $handle === 'vite-client') {
+        if (self::$is_dev) {
+            if ((array_key_exists($handle, (array)self::$assets['inputs'])) || $handle === 'vite-client') {
                 $tag = '<script type="module" src="' . esc_url($src) . '"></script>';
             }
         }
@@ -280,33 +288,89 @@ class Theme
         return $tag;
     }
 
+    private static function isUseChunk($chunk_name): bool
+    {
+        $is_chunk_for_this_page = (is_front_page() && $chunk_name === 'front-page') || is_page($chunk_name);
+        $is_necessary_chunk_name = in_array($chunk_name, self::$necessary_chunks_name, true);
+        $is_default_chunk_for_another_pages = $chunk_name === self::$default_chunk_name_for_another_pages;
+
+        return ($is_chunk_for_this_page || $is_necessary_chunk_name) || $is_default_chunk_for_another_pages;
+    }
+
+    private static function enqueueChunkData($slug, $chunk_data): void
+    {
+        if (!empty($chunk_data['url_js'])) {
+            wp_enqueue_script($slug, $chunk_data['url_js'], self::getJsDeps(), null, true);
+        }
+        if (!empty($chunk_data['url_css'])) {
+            wp_enqueue_style($slug, $chunk_data['url_css'], null, null);
+        }
+    }
+
+    private static function setChunkData($chunk_name, $link): void
+    {
+        $current_chunk_name = trim($chunk_name, '_');
+        $field_name_for_ext = 'incorrect_field_name';
+        $path_data = explode('.', $link);
+        $ext  = end($path_data);
+
+        if (empty(self::$enqueued_assets_data[$current_chunk_name])) {
+            self::$enqueued_assets_data[$current_chunk_name] = [];
+        }
+
+        if ($ext === 'css') {
+            $field_name_for_ext = 'url_css';
+        }
+        if ($ext === 'js' || $ext === 'ts' || $ext === 'tsx' || $ext === 'jsx') {
+            $field_name_for_ext = 'url_js';
+        }
+
+        self::$enqueued_assets_data[$current_chunk_name]['use'] = self::isUseChunk($current_chunk_name);
+        self::$enqueued_assets_data[$current_chunk_name][$field_name_for_ext] = $link;
+    }
+
+    private static function getJsDeps(): array
+    {
+        return self::$is_dev ? self::$js_deps['development'] : self::$js_deps['production'];
+    }
+
+
+    private static function enqueueChunks(): void
+    {
+        $chunks_cont = count(self::$enqueued_assets_data);
+        if ($chunks_cont === 1) {
+            $chunk_name = array_key_first(self::$enqueued_assets_data);
+            self::$enqueued_assets_data[$chunk_name]['use'] = true;
+        }
+        foreach (self::$enqueued_assets_data as $slug => $chunk_data) {
+            if ($chunk_data['use']) {
+                self::enqueueChunkData($slug, $chunk_data);
+            }
+        }
+    }
+
     public function injectViteAssets()
     {
-        if (self::$assets) {
-            $is_dev = THEME_MOD === 'development';
-
-            if ($is_dev) {
+        if (!empty(self::$assets)) {
+            if (self::$is_dev) {
                 $url = self::$assets['url'];
-                wp_enqueue_script('vite-client', $url . '@vite/client', [ 'jquery', 'wp-api' ], null, true);
+                wp_enqueue_script('vite-client', $url . '@vite/client', self::$js_deps['production'], null, true);
 
-                foreach ((array)self::$assets['inputs'] as $name => $link) {
-                    wp_enqueue_script($name, $url . $link, [ 'jquery', 'wp-api', 'vite-client' ], null, true);
+                foreach ((array)self::$assets['inputs'] as $chunk_name => $link) {
+                    self::setChunkData($chunk_name, $url.$link);
                 }
+
+                self::enqueueChunks();
             } else {
-                foreach (self::$assets as $name => $chunk) {
-                    $data = explode('.', $name);
-                    $ext  = end($data);
+                foreach (self::$assets as $local_asset_path => $data) {
+                    $url = get_theme_file_uri(THEME_BUILD_DIR . '/' . $data->file);
+                    $path_to_file_array = explode('/', $local_asset_path);
+                    $chunk_name = explode('.', end($path_to_file_array))[0];
 
-                    // Получение полного пути до чанка
-                    $url = get_theme_file_uri(THEME_BUILD_DIR . '/' . $chunk->file);
-
-
-                    if ($ext === 'css') {
-                        wp_enqueue_style($name, $url, null, null);
-                    } elseif ($ext === 'js' || $ext === 'ts' || $ext === 'tsx' || $ext === 'jsx') {
-                        wp_enqueue_script($name, $url, [ 'jquery', 'wp-api' ], null, true);
-                    }
+                    self::setChunkData($chunk_name, $url);
                 }
+
+                self::enqueueChunks();
             }
 
             add_filter('script_loader_tag', [$this, 'add_attributes_vite_assets'], 10, 999);
@@ -322,12 +386,10 @@ class Theme
 
     public function getUrlChunk($name): ?string
     {
-        $is_dev = THEME_MOD === 'development';
-
         if ($this->type === 'vite') {
             $assets = (array)$this->viteAssets;
 
-            if (!empty($assets[$name]) && !$is_dev) {
+            if (!empty($assets[$name]) && !self::$is_dev) {
                 return get_theme_file_uri(THEME_BUILD_DIR . '/' . $assets[$name]->file);
             } else {
                 return get_theme_file_uri($name);
@@ -337,12 +399,12 @@ class Theme
         return null;
     }
 
-    public function localizeScript($name) {
-        $is_dev = THEME_MOD === 'development';
-
+    public function localizeScript($name)
+    {
         if ($this->type === 'vite') {
-
-            wp_localize_script( $name, 'myajax',
+            wp_localize_script(
+                $name,
+                'myajax',
                 array(
                     'url' => admin_url('admin-ajax.php')
                 )

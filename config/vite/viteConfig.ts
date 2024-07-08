@@ -1,13 +1,23 @@
-import { builtinModules } from 'module';
 import { resolve } from 'path';
 import { UserConfig } from 'vite';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import devManifest from 'vite-plugin-dev-manifest';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { existsSync } from 'node:fs';
 import { ViteOptions } from './types/vite';
 
 export function viteConfig( options: ViteOptions ): UserConfig {
+    const inputs: Record<string, string> = {};
+    if ( Array.isArray( options.jsChunks ) ) {
+        options.jsChunks.forEach( ( chunkName ) => {
+            const pathToFile = resolve( options.paths.src, 'js', 'chunks', `${ chunkName }.ts` );
+            if ( existsSync( pathToFile ) ) {
+                inputs[ chunkName ] = pathToFile;
+            }
+        } );
+    }
+
     // @ts-ignore
     return {
         css: {
@@ -51,15 +61,11 @@ export function viteConfig( options: ViteOptions ): UserConfig {
             sourcemap: options.mode === 'development',
             rollupOptions: {
                 input: {
-                    main: resolve( options.paths.src, options.jsFile ),
+                    ...inputs,
                 },
                 output: {
-                    // manualChunks: {
-                    //     antd: [ 'antd' ],
-                    //     mobx: [ 'mobx' ],
-                    // },
-                    entryFileNames: '[name].[hash].js',
-                    chunkFileNames: '[name].js',
+                    entryFileNames: 'js/[name].[hash].js',
+                    chunkFileNames: 'js/[name].js',
                     assetFileNames: ( assetInfo ) => {
                         // @ts-ignore
                         let extType = assetInfo.name.split( '.' )[ 1 ];

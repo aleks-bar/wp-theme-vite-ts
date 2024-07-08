@@ -1,0 +1,52 @@
+body {
+  font-size   : map-get($default_settings, 'fotn-size');
+  line-height : map-get($default_settings, 'line-height');
+}
+
+p:not(:last-child) {
+  margin-bottom : map-get($default_settings, 'redactor-elem-margin-bottom');
+}
+
+a:not(.link-reset) {
+  &:hover {
+    text-decoration : underline;
+  }
+}
+
+ul, ol {
+  margin  : unset;
+  padding : unset;
+
+  &:not(.list-reset) {
+    padding-inline-start : map-get($default_settings, 'list-padding-left');
+    list-style-position  : inside;
+
+    li:not(:last-child) {
+      margin-bottom : map-get($default_settings, 'redactor-elem-margin-bottom');
+    }
+  }
+}
+
+ul:not(.list-reset) {
+  list-style-type : disc;
+}
+
+ol:not(.list-reset) {
+  list-style-type : decimal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight   : map-get($default_settings, 'title-font-weght');
+  margin-bottom   : map-get($default_settings, 'title-margin-bottom');
+}
+
+//h1 {
+//}
+//h2 {
+//}
+//h3 {
+//}
+//h4 {
+//}
+//h5 {
+//}

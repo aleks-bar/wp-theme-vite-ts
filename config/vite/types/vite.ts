@@ -14,6 +14,6 @@ export interface ViteOptions {
     port: number,
     host: string,
     domain: string,
-    jsFile: string,
+    jsChunks: string | object,
     define: Record<string, any>
 }
