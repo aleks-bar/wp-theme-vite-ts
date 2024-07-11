@@ -5,6 +5,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import devManifest from 'vite-plugin-dev-manifest';
 import { visualizer } from 'rollup-plugin-visualizer';
 import { existsSync } from 'node:fs';
+import liveReload from 'vite-plugin-live-reload';
 import { ViteOptions } from './types/vite';
 
 export function viteConfig( options: ViteOptions ): UserConfig {
@@ -52,6 +53,7 @@ export function viteConfig( options: ViteOptions ): UserConfig {
                         ],
                 },
             } ),
+            !! options.paths.templates && liveReload( options.paths.templates ),
         ],
         root: options.paths.root,
         build: {

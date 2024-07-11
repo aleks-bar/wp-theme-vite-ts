@@ -4,6 +4,7 @@ export interface VitePaths {
     build: string;
     src: string;
     root: string;
+    templates?: string;
 }
 
 export interface ViteOptions {

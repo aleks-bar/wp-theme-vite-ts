@@ -33,6 +33,7 @@ export default defineConfig( ( configEnv ) => {
             root: resolve( __dirname ),
             build: resolve( __dirname, env.BUILD_DIR || 'dist' ),
             src: resolve( __dirname, 'src' ),
+            templates: resolve( __dirname, 'templates' ),
         },
         define: {
             __IS_DEV__: mode === 'development',
