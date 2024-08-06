@@ -4,9 +4,7 @@ module.exports = () => {
             'postcss-preset-env': {},
             autoprefixer: {},
             tailwindcss: {},
-        },
-        resolve: {
-
+            'postcss-sort-media-queries': {},
         },
     } );
 };

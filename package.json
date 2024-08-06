@@ -30,6 +30,7 @@
     "eslint-plugin-import": "^2.25.4",
     "fast-glob": "^3.2.12",
     "postcss-preset-env": "^8.3.2",
+    "postcss-sort-media-queries": "^5.2.0",
     "prettier": "^2.8.8",
     "prettier-plugin-tailwindcss": "^0.2.8",
     "rollup-plugin-visualizer": "^5.9.2",
