@@ -8,7 +8,6 @@ function theme_init_assets()
     if (!is_admin()) {
         wp_deregister_script('jquery');
         wp_register_script('jquery', "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js", false, null, true);
-
         wp_enqueue_script('jquery');
         wp_enqueue_script('wp-api');
 
@@ -16,10 +15,10 @@ function theme_init_assets()
 
         $theme->injectViteAssets();
 
-        $theme->addVariablesForJs(THEME_JS_DATA_SCRIPT_NAME, [
-            'ajaxurl'        => admin_url('admin-ajax.php'),
-            'themeUrl'       => get_template_directory_uri(),
-            'nonce'          => wp_create_nonce('wp_rest'),
+        $theme->addVariablesForJs([
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'themeUrl' => get_template_directory_uri(),
+            'nonce' => wp_create_nonce('wp_rest'),
         ]);
     }
 }

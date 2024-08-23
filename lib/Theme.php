@@ -12,20 +12,24 @@ class Theme
     public string $type = 'vite';
 
     public array $viteAssets = [];
-    public array $webpackAssets = [];
 
     public static array $assets;
 
+    private static array $enqueued_assets_data = [];
+    private static string $main_chunk_name = 'index';
+    private static string $vendors_main_name = 'vendors';
+    private static string $variables_list_name = VARIABLES_LIST_NAME;
+    private static string $vite_client_slug = 'vite-client';
     private static array $js_deps = [
         'production' => [ 'jquery', 'wp-api' ],
         'development' => [ 'jquery', 'wp-api', 'vite-client' ]
     ];
+    private static bool $useAsyncChunks = true;
+    private static ?string $chunkName = null;
+    private static string $htmlAttributeName = 'chunk';
 
     private static bool $is_dev;
 
-    private static array $enqueued_assets_data = [];
-    private static string $default_chunk_name_for_another_pages = 'index';
-    private static array $necessary_chunks_names = ['layout'];
 
     public static function getInstance(): Theme
     {
@@ -38,11 +42,8 @@ class Theme
 
     private function __construct()
     {
-        // Получаем данные из файла assets.json
-        if (file_exists(get_theme_file_path('/dist/manifest.json'))) {
-            self::$assets = (array) json_decode(file_get_contents(get_theme_file_path('/dist/manifest.json')));
-            self::$is_dev = IS_DEV ?? false;
-        }
+        self::$is_dev = IS_DEV ?? false;
+        self::$main_chunk_name = MAIN_JS_FILE ?? self::$main_chunk_name;
     }
 
     private function __clone()
@@ -258,62 +259,79 @@ class Theme
         });
     }
 
-    public function setAssetsJson($file, $type = 'vite')
+    public function setAssetsJson($file)
     {
-        $this->type = $type;
-
-        if ($this->type === 'vite') {
-            // Получаем данные из файла assets.json
-            if (file_exists($file)) {
-                $this->viteAssets = (array)json_decode(file_get_contents($file));
-            }
-        }
-
-        if ($this->type === 'webpack') {
-            // Получаем данные из файла assets.json
-            if (file_exists($file)) {
-                $this->webpackAssets = (array)json_decode(file_get_contents($file));
-            }
+        if (file_exists($file)) {
+            self::$assets = (array)json_decode(file_get_contents($file));
         }
     }
 
-    public function add_attributes_vite_assets($tag, $handle, $src)
+    private static function parseHtmlTag($html): array
     {
-        if (self::$is_dev) {
-            if ((array_key_exists($handle, (array)self::$assets['inputs'])) || $handle === 'vite-client') {
-                $tag = '<script type="module" src="' . esc_url($src) . '"></script>';
+        $result = [
+            'tag_name' => '',
+            'has_closing_tag' => false,
+            'content' => '',
+            'attributes' => []
+        ];
+
+        // Регулярное выражение для поиска тега, его атрибутов и контента внутри
+        if (preg_match('/<(\w+)([^>]*)>(.*?)<\/\1>/s', $html, $matches)) {
+            $result['tag_name'] = $matches[1];
+            $result['has_closing_tag'] = true;
+            $result['content'] = $matches[3];
+            $attributesString = $matches[2];
+        } elseif (preg_match('/<(\w+)([^>]*)\/>/s', $html, $matches)) {
+            $result['tag_name'] = $matches[1];
+            $attributesString = $matches[2];
+        } else {
+            return $result; // Возвращаем пустой массив, если тег не соответствует ожидаемому формату
+        }
+
+        // Регулярное выражение для поиска атрибутов и их значений
+        if (preg_match_all('/(\w+)="([^"]*)"/', $attributesString, $attributeMatches, PREG_SET_ORDER)) {
+            foreach ($attributeMatches as $attribute) {
+                $result['attributes'][$attribute[1]] = $attribute[2];
             }
+        }
+
+        return $result;
+    }
+
+    public function add_attributes_vite_assets($tag, $handle)
+    {
+        $add_module_for_tag =
+            self::$useAsyncChunks && (self::isUseChunk($handle) || $handle === self::$vite_client_slug);
+
+        if ($add_module_for_tag) {
+            $parsed_tag = self::parseHtmlTag($tag);
+            $parsed_tag['attributes']['type'] = 'module';
+            $tag = '<'.$parsed_tag['tag_name'];
+
+            foreach ($parsed_tag['attributes'] as $attribute => $value) {
+                $tag .= ' '.$attribute.'="'.$value.'"';
+            }
+
+            $tag .= $parsed_tag['has_closing_tag'] === true
+                ? '>'.$parsed_tag['content'].'</'.$parsed_tag['tag_name'].'>' : '/>';
         }
 
         return $tag;
     }
 
-    public static function setDefaultChunkNameForAnotherPages(string $new_chunk_name): void
-    {
-        self::$default_chunk_name_for_another_pages = $new_chunk_name;
-    }
-
-    public static function addNecessaryChunks(array $new_necessary_chunks): void
-    {
-        self::$necessary_chunks_names = array_merge(self::$necessary_chunks_names, $new_necessary_chunks);
-    }
-
     private static function isUseChunk($chunk_name): bool
     {
-        $is_chunk_for_this_page = (is_front_page() && $chunk_name === 'front-page') || is_page($chunk_name);
-        $is_necessary_chunk_name = in_array($chunk_name, self::$necessary_chunks_names, true);
-        $is_default_chunk_for_another_pages = $chunk_name === self::$default_chunk_name_for_another_pages;
-
-        return $is_chunk_for_this_page || $is_necessary_chunk_name || $is_default_chunk_for_another_pages;
+        return str_starts_with($chunk_name, self::$main_chunk_name)
+            || str_starts_with($chunk_name, self::$vendors_main_name);
     }
 
-    private static function enqueueChunkData($slug, $chunk_data): void
+    private static function enqueueChunkData($chunk_name, $chunk_data): void
     {
         if (!empty($chunk_data['url_js'])) {
-            wp_enqueue_script($slug, $chunk_data['url_js'], self::getJsDeps(), null, true);
+            wp_enqueue_script($chunk_name, $chunk_data['url_js'], self::getJsDeps(), null, true);
         }
         if (!empty($chunk_data['url_css'])) {
-            wp_enqueue_style($slug, $chunk_data['url_css'], null, null);
+            wp_enqueue_style($chunk_name, $chunk_data['url_css'], null, null);
         }
     }
 
@@ -347,14 +365,15 @@ class Theme
 
     private static function enqueueChunks(): void
     {
-        $chunks_cont = count(self::$enqueued_assets_data);
-        if ($chunks_cont === 1) {
-            $chunk_name = array_key_first(self::$enqueued_assets_data);
-            self::$enqueued_assets_data[$chunk_name]['use'] = true;
-        }
-        foreach (self::$enqueued_assets_data as $slug => $chunk_data) {
+//        $chunks_count = count(self::$enqueued_assets_data);
+//        if ($chunks_count === 1) {
+//            $chunk_name = array_key_first(self::$enqueued_assets_data);
+//            self::$enqueued_assets_data[$chunk_name]['use'] = true;
+//        }
+
+        foreach (self::$enqueued_assets_data as $chunk_name => $chunk_data) {
             if ($chunk_data['use']) {
-                self::enqueueChunkData($slug, $chunk_data);
+                self::enqueueChunkData($chunk_name, $chunk_data);
             }
         }
     }
@@ -363,15 +382,21 @@ class Theme
     {
         if (!empty(self::$assets)) {
             if (self::$is_dev) {
+                if (empty(self::$assets['inputs'])) {
+                    wp_die('Неверно указан параметр WP_ENV');
+                }
+
                 $url = self::$assets['url'];
-                wp_enqueue_script('vite-client', $url . '@vite/client', self::$js_deps['production'], null, true);
+                wp_enqueue_script(self::$vite_client_slug, $url . '@vite/client', self::$js_deps['production'], null, true);
 
                 foreach ((array)self::$assets['inputs'] as $chunk_name => $link) {
                     self::setChunkData($chunk_name, $url.$link);
                 }
-
-                self::enqueueChunks();
             } else {
+                if (!empty(self::$assets['inputs'])) {
+                    wp_die('Неверно указан параметр WP_ENV');
+                }
+
                 foreach (self::$assets as $local_asset_path => $data) {
                     $url = get_theme_file_uri(THEME_BUILD_DIR . '/' . $data->file);
                     $path_to_file_array = explode('/', $local_asset_path);
@@ -379,46 +404,36 @@ class Theme
 
                     self::setChunkData($chunk_name, $url);
                 }
-
-                self::enqueueChunks();
             }
+
+            self::enqueueChunks();
 
             add_filter('script_loader_tag', [$this, 'add_attributes_vite_assets'], 10, 999);
         }
     }
 
-    public function addVariablesForJs($script_name, $variables = [], $main_variable_name = 'site')
+    public function addVariablesForJs($variables = [])
     {
-        if (!empty($variables) && !empty($script_name)) {
-            wp_localize_script($script_name, $main_variable_name, $variables);
+        if (!empty($variables)) {
+            wp_localize_script(self::$main_chunk_name, self::$variables_list_name, $variables);
         }
     }
 
-    public function getUrlChunk($name): ?string
+    public function setLoadAsyncChunks($enable): void
     {
-        if ($this->type === 'vite') {
-            $assets = (array)$this->viteAssets;
+        self::$useAsyncChunks = $enable;
+    }
 
-            if (!empty($assets[$name]) && !self::$is_dev) {
-                return get_theme_file_uri(THEME_BUILD_DIR . '/' . $assets[$name]->file);
-            } else {
-                return get_theme_file_uri($name);
-            }
+    static function setChunkName(string $chunkName): void
+    {
+        self::$chunkName = $chunkName;
+    }
+
+    static function addChunkIfEnabled(): ?string
+    {
+        if (!empty(self::$chunkName) && !empty(self::$useAsyncChunks)) {
+            return self::$htmlAttributeName.'="'.self::$chunkName.'"';
         }
-
         return null;
-    }
-
-    public function localizeScript($name)
-    {
-        if ($this->type === 'vite') {
-            wp_localize_script(
-                $name,
-                'myajax',
-                array(
-                    'url' => admin_url('admin-ajax.php')
-                )
-            );
-        }
     }
 }

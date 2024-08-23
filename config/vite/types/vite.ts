@@ -5,6 +5,7 @@ export interface VitePaths {
     src: string;
     root: string;
     templates?: string;
+    base?: string;
 }
 
 export interface ViteOptions {
@@ -15,6 +16,6 @@ export interface ViteOptions {
     port: number,
     host: string,
     domain: string,
-    jsChunks: string | object,
+    manifestName: string,
     define: Record<string, any>
 }

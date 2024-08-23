@@ -21,13 +21,17 @@ if (file_exists(get_theme_file_path('.env'))) {
 | Объявление переменных темы
 |--------------------------------------------------------------------------
 */
-define('THEME_MOD', env('MODE') ?? 'production');
+
 define('THEME_HOST', env('HOST') ?? 'localhost');
 define('THEME_PORT', env('PORT') ?? '3000');
 define('THEME_BUILD_DIR', env('BUILD_DIR') ?? 'dist');
 define('THEME_PUBLIC_DIR', env('PUBLIC_DIR') ?? 'public');
-define('THEME_MANIFEST', env('MANIFEST') ?? 'assets.json');
+define('THEME_MANIFEST', env('MANIFEST') ?? 'manifest.json');
 define('THEME_URL', get_template_directory_uri());
 define('THEME_PATH', get_theme_file_path());
-define('IS_DEV', THEME_MOD === 'development');
-define('THEME_JS_DATA_SCRIPT_NAME', IS_DEV ? 'main' : 'src/'. env('MAIN_JS_FILE'));
+
+define('VARIABLES_LIST_NAME', env('VARIABLES_LIST_NAME') ?? 'variables');
+
+define('PAGE_GIRLS_ID', 114);
+
+define('YMAPS_API_KEY', '3f5a2cdc-68f4-42af-9ab5-143cb3d760ee');
