@@ -43,7 +43,6 @@ class Theme
     private function __construct()
     {
         self::$is_dev = IS_DEV ?? false;
-        self::$main_chunk_name = MAIN_JS_FILE ?? self::$main_chunk_name;
     }
 
     private function __clone()
