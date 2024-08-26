@@ -1,11 +1,11 @@
-import { app, App } from "js/common/app";
+import { App } from "js/common";
 
 interface ChunkCustom {
   default: (app?: App) => void
 }
 
 interface ChunkData {
-  module: ChunkCustom
+  chunk: ChunkCustom
   error: Error | null
   loading: boolean
 }
@@ -18,26 +18,32 @@ interface ChunkLazy {
 
 export type ChunksList = Record<string, () => void>
 
-function chunkLazy(importFunc, moduleName: string): ChunkLazy {
-  const moduleData: ChunkData = {
-    module: { default: () => console.error(`${moduleName} - модуль не загружен`)},
+/**
+ * importFunc функция которая возвращает import('./путь/до/чанка')
+ *
+ * @param importFunc
+ * @param chunkName
+ */
+export function chunkLazy(importFunc, chunkName: string): ChunkLazy {
+  const chunkData: ChunkData = {
+    chunk: { default: () => console.error(`${chunkName} - чанк не загружен`)},
     error: null,
     loading: false
   }
 
   const chunkLoad = async () => {
     try {
-      moduleData.loading = true
-      moduleData.module = await importFunc()
+      chunkData.loading = true
+      chunkData.chunk = await importFunc()
     } catch (error) {
-      moduleData.error = error
+      chunkData.error = error
     } finally {
-      moduleData.loading = false;
+      chunkData.loading = false;
     }
   };
 
   const chunkInit = (data: ChunkLazy['data'], app?: App) => {
-    const { module, loading, error } = data;
+    const { chunk, loading, error } = data;
 
     if ( loading ) {
       console.log( 'Загрузка...' );
@@ -47,14 +53,14 @@ function chunkLazy(importFunc, moduleName: string): ChunkLazy {
       if(IS_DEV && app?.chunk){
         console.log('Загружен чанк: ' + `>  ${app.chunk}  <`)
       }
-      module.default( app )
+      chunk.default( app )
     }
   }
 
   return {
     chunkLoad,
     chunkInit,
-    get data() { return moduleData },
+    get data() { return chunkData },
   };
 }
 
