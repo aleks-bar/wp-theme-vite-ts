@@ -1,0 +1,64 @@
+$button-variants : (
+    main: (
+        default: (
+            border-radius: 8px,
+            background-color: var(--color-accent),
+            border-color : var(--color-accent),
+            color : var(--color-light),
+            load-spinner: var(--spinner-light),
+            svg: (
+                fill: var(--color-light),
+            )
+        ),
+        active: (
+            background-color: var(--color-accent-dark),
+            border-color : var(--color-accent-dark),
+            color : var(--color-light),
+            load-spinner: var(--spinner-light),
+            svg: (
+                fill: var(--color-light),
+            )
+        ),
+        hover: (
+            color : var(--color-accent),
+            background-color : var(--color-accent-tint),
+            svg: (
+                fill : var(--color-accent),
+            )
+        ),
+    ),
+    outline: (
+        default: (
+            border-radius: 8px,
+            background-color: var(--color-accent-tint),
+            border-color : var(--color-accent),
+            color : var(--color-accent),
+            load-spinner: var(--spinner-accent),
+            svg: (
+                fill: var(--color-accent),
+            )
+        ),
+        active: (
+            background-color: var(--color-accent-dark),
+            border-color : var(--color-accent-dark),
+            color : var(--color-light),
+            load-spinner: var(--spinner-light),
+            svg: (
+                fill: var(--color-light),
+            )
+        ),
+        hover: (
+            color : var(--color-light),
+            background-color : var(--color-accent),
+            svg: (
+                fill : var(--color-light),
+            )
+        ),
+    ),
+);
+
+$button-sizes    : (
+    md: (
+        padding: 7px 15px,
+    )
+);

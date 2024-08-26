@@ -1,0 +1,17 @@
+@use "sass:map";
+
+$spacing : ();
+
+$i       : 0;
+
+@while $i < 104 {
+  $i       : $i + 4;
+  $spacing : map.set($spacing, $i, #{$i}px);
+}
+
+;
+
+$radius  : (
+    8: 8px,
+    16: 16px,
+);

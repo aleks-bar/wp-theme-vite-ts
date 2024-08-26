@@ -16,18 +16,17 @@ declare module '*.scss' {
 //     export default SVG;
 // }
 
-declare const __IS_DEV__: boolean;
-declare const __API__: string;
-declare const __USER_LOGIN__: string;
-declare const __USER_PASS__: string;
+interface ThemeVariables {
+    ajaxurl: string;
+    themeUrl: string;
+    nonce: string;
+}
+
+declare const API_PATH: string;
+declare const IS_DEV: boolean;
+declare const VARIABLES: ThemeVariables;
 // declare const __PATH_TO_SPRITE__: string;
 // declare const __PORT__: string;
 // declare const __HOST__: string;
 // declare const __PATH_TO_THEMES__: string;
 // declare const __THEME_NAME__: string;
-
-declare const site: {
-    ajaxurl: string;
-    themeUrl: string;
-    nonce: string;
-};

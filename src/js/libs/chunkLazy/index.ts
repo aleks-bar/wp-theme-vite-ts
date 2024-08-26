@@ -1,4 +1,4 @@
-import { app, App } from "js/common";
+import { app, App } from "js/common/app";
 
 interface ChunkCustom {
   default: (app?: App) => void

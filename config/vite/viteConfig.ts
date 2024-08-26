@@ -108,8 +108,6 @@ export function viteConfig( options: ViteOptions ): UserConfig {
       alias: {
         src: resolve( options.paths.src ),
         js: resolve( options.paths.src, 'js' ),
-        '@src': resolve( options.paths.src ),
-        '@root': resolve( options.paths.root ),
       },
       extensions: [
         '.js',

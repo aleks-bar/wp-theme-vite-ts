@@ -1,7 +1,6 @@
-import 'vite/modulepreload-polyfill';
-import 'virtual:svg-icons-register';
-import '@src/styles/_index.scss';
+import { App } from "js/common/app";
+import 'src/styles/main-chunk.scss'
 
-document.addEventListener( 'DOMContentLoaded', () => {
-    console.log( 'js enabled' );
-} );
+export default function( app?: App ) {
+  console.log('main chunk')
+}

@@ -11,5 +11,5 @@
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<div id="app">
+<div id="app" <?= Theme::addChunkIfEnabled() ?>>
     <?php get_template_part('templates/routs/layouts/header/template'); ?>

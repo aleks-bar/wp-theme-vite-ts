@@ -24,7 +24,7 @@ class Theme
         'production' => [ 'jquery', 'wp-api' ],
         'development' => [ 'jquery', 'wp-api', 'vite-client' ]
     ];
-    private static bool $useAsyncChunks = true;
+    private static bool $useAsyncChunks = false;
     private static ?string $chunkName = null;
     private static string $htmlAttributeName = 'chunk';
 
@@ -418,19 +418,22 @@ class Theme
         }
     }
 
-    public function setLoadAsyncChunks($enable): void
+    public static function setLoadAsyncChunks($enable): void
     {
         self::$useAsyncChunks = $enable;
     }
 
     static function setChunkName(string $chunkName): void
     {
+        if (self::$useAsyncChunks === false) {
+            self::setLoadAsyncChunks(true);
+        }
         self::$chunkName = $chunkName;
     }
 
     static function addChunkIfEnabled(): ?string
     {
-        if (!empty(self::$chunkName) && !empty(self::$useAsyncChunks)) {
+        if (!empty(self::$chunkName)) {
             return self::$htmlAttributeName.'="'.self::$chunkName.'"';
         }
         return null;
