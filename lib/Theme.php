@@ -24,7 +24,7 @@ class Theme
         'production' => [ 'jquery', 'wp-api' ],
         'development' => [ 'jquery', 'wp-api', 'vite-client' ]
     ];
-    private static bool $useAsyncChunks = false;
+    private static bool $useAsyncChunks = true;
     private static ?string $chunkName = null;
     private static string $htmlAttributeName = 'chunk';
 
@@ -42,7 +42,7 @@ class Theme
 
     private function __construct()
     {
-        self::$is_dev = IS_DEV ?? false;
+        self::$is_dev = defined('IS_DEV') && IS_DEV;
     }
 
     private function __clone()
