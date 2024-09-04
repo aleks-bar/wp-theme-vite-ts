@@ -2,15 +2,9 @@ body {
   font-family         : "Onest", sans-serif;
   font-optical-sizing : auto;
   font-style          : normal;
-  font-size           : map-get($text-sizes, text, md, default, font-size);
+  font-size           : 16;
   line-height         : map-get($main_settings, 'line-height');
   color               : map-get($main_settings, 'text-color');
-
-  @each $breackpoint, $breackpoint_value in map-get($text-sizes, text, md, breakpoints) {
-    @media (min-width: map-get($breakpoints-min, $breackpoint)) {
-      font-size: map-get($breackpoint_value, font-size);
-    }
-  }
 }
 
 p {
@@ -62,43 +56,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom : map-get($main_settings, 'title-margin-bottom');
 }
 
-// ------ text sizes ------ start
-@each $text-style, $text-size in $text-sizes {
-  .#{$text-style} {
-    @each $size-name, $size-value in $text-size {
-      &-#{$size-name} {
-        // mobile style for size
-        line-height : map-get($size-value, 'default', 'line-height');
-        font-size   : map-get($size-value, 'default', 'font-size');
-        @if map-get($size-value, 'default', 'letter-spacing') != null {
-          letter-spacing : map-get($size-value, 'default', 'letter-spacing');
-        }
-
-        // breakpoints
-        @each $breakpoint, $breakpoint-value in map-get($size-value, 'breakpoints') {
-          @media (min-width : map-get($breakpoints-min, $breakpoint)) {
-            font-size : map-get($breakpoint-value, 'font-size');
-            @if map-get($breakpoint-value, 'letter-spacing') != null {
-              letter-spacing : map-get($breakpoint-value, 'letter-spacing');
-            }
-            @if map-get($breakpoint-value, 'line-height') != null {
-              line-height : map-get($breakpoint-value, 'line-height');
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-// ------ text sizes ------ end
-
 .uppercase {
   text-transform : uppercase;
-}
-
-@each $font-weight in map-values($fonts-weights) {
-  .font-#{$font-weight} {
-    font-weight : $font-weight;
-  }
 }
