@@ -4,7 +4,7 @@ $main_settings : (
     line-height: 1.5,
     text-color: var(--color-dark),
     redactor-elem-margin-bottom: 16px,
-    title-font-weght: map-get($fonts-weights, 'medium'),
+    title-font-weght: 500,
     title-margin-bottom: 20px,
     list-padding-left: 40px
 );

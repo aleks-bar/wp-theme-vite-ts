@@ -2,7 +2,7 @@ body {
   font-family         : "Onest", sans-serif;
   font-optical-sizing : auto;
   font-style          : normal;
-  font-size           : 16;
+  font-size           : 16px;
   line-height         : map-get($main_settings, 'line-height');
   color               : map-get($main_settings, 'text-color');
 }
